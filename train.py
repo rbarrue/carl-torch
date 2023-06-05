@@ -32,6 +32,8 @@ n_hidden = tuple(opts.layers) if opts.layers != None else tuple( repeat( (len(fe
 batch_size = opts.batch_size
 per_epoch_plot = opts.per_epoch_plot
 per_epoch_save = opts.per_epoch_save
+do_early_stopping = opts.do_early_stopping
+early_stopping_patience = opts.early_stopping_patience
 nepoch = opts.nepoch
 scale_method = opts.scale_method
 weight_clipping = opts.weight_clipping
@@ -42,6 +44,7 @@ BoolFilter = opts.BoolFilter
 n_workers = opts.n_workers
 clipFeatures = opts.clipFeatures.split(",") if len(opts.clipFeatures)>0 else []
 clippingQuantile = opts.clippingQuantile
+cuda_visible_devices = ",".join(str(device) for device in opts.cuda_visible_devices) if opts.cuda_visible_devices is not None else None
 #################################################
 
 #################################################
@@ -114,7 +117,9 @@ else:
     )
     logger.info(" Loaded new datasets ")
 #######################################
-
+if opts.makeInputDSOnly:
+    logger.info(" Exiting after making the datasets")
+    sys.exit(1)
 #######################################
 # Estimate the likelihood ratio using a NN model
 #   -> Calculate number of input variables as rudimentary guess
@@ -190,8 +195,10 @@ if per_epoch_save:
 kwargs = {}
 if opts.regularise is not None:
     logger.info("L2 loss regularisation included.")
-    kwargs={"weight_decay": 1e-5}
+    kwargs={"weight_decay": 1e-6}
 
+if cuda_visible_devices is not None:
+    os.environ['CUDA_VISIBLE_DEVICES'] = cuda_visible_devices
 
 # perform training
 train_loss, val_loss, accuracy_train, accuracy_val = estimator.train(
@@ -209,8 +216,8 @@ train_loss, val_loss, accuracy_train, accuracy_val = estimator.train(
     w1=w1,
     scale_inputs=True,
     scaling=scale_method,
-    early_stopping=False,
-    #early_stopping_patience=20,
+    early_stopping=do_early_stopping,
+    early_stopping_patience=early_stopping_patience if do_early_stopping else None,
     intermediate_train_plot = intermediate_train_plot,
     intermediate_save = intermediate_save,
     optimizer_kwargs=kwargs,
@@ -219,14 +226,16 @@ train_loss, val_loss, accuracy_train, accuracy_val = estimator.train(
     nentries=n,
     loss_type=loss_type,
     n_workers=n_workers,
+    verbose="some",
     #initial_lr=0.0001,
     #final_lr=0.00001,
+    memmap=True,
 )
 
 # saving loss values and final trained models
-np.save(f"loss_train_{global_name}.npy", train_loss)
-np.save(f"loss_val_{global_name}.npy", val_loss)
-np.save(f"accuracy_train_{global_name}.npy", accuracy_train)
-np.save(f"accuracy_val_{global_name}.npy", accuracy_val)
-estimator.save('models/'+ global_name +'_carl_'+str(n), x, metaData, export_model = True, noTar=True)
+np.save(f"models/{global_name}/loss_train_{global_name}.npy", train_loss)
+np.save(f"models/{global_name}/loss_val_{global_name}.npy", val_loss)
+np.save(f"models/{global_name}/accuracy_train_{global_name}.npy", accuracy_train)
+np.save(f"models/{global_name}/accuracy_val_{global_name}.npy", accuracy_val)
+estimator.save(f'models/{global_name}/{global_name}_carl_{str(n)}', x, metaData, export_model = True, noTar=True)
 ########################################

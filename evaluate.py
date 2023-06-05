@@ -40,7 +40,7 @@ carl.scaling_method = scale_method
 if model:
     carl.load(model, global_name=global_name, nentries=n)
 else:
-    carl.load('models/'+global_name+'_carl_'+str(n), global_name=global_name, nentries=n)
+    carl.load('models/'+global_name+'/'+global_name+'_carl_'+str(n), global_name=global_name, nentries=n)
 evaluate = ['train','val']
 raw_w = "raw_" if raw_weight else ""
 for i in evaluate:

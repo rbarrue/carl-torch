@@ -10,7 +10,7 @@ from ml.utils.plotting import draw_weighted_distributions
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-   parser = argparse.ArgumentParser(usage="usage: %prog [opts]")
+   parser = argparse.ArgumentParser(usage="usage: %(prog)s [opts]")
    parser.add_argument('--version', action='version', version='%prog 1.0')
    parser.add_argument('-g', '--global_name',  action='store', type=str, dest='global_name',  default='Test', help='Global name for identifying this run - used in folder naming and output naming')
    parser.add_argument('-e', '--nentries',  action='store', type=int, dest='nentries',  default=1000, help='specify the number of events to do the training on, None means full sample')

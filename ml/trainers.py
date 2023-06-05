@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 class NanException(Exception):
     pass
 
-
+class EarlyStoppingException(Exception):
+    pass
 
 class NumpyDataset(Dataset):
     """ Dataset for numpy arrays with explicit memmap support """
@@ -510,13 +511,13 @@ class Trainer(object):
                 summary += "{}: {:>6.3f}".format(label, value)
             return summary
 
-        train_report = "  Epoch {:>3d}: train loss {:>8.8f} ({}), accu {}".format(
+        train_report = "  Epoch {:>3d}: train loss {:>12.12f} ({}), accu {}".format(
             i_epoch + 1, loss_train, contribution_summary(loss_labels, loss_contributions_train), accu_train
         )
         logging_fn(train_report)
 
         if loss_val is not None:
-            val_report = "             val. loss  {:>8.8f} ({}), accu {}".format(
+            val_report = "             val. loss  {:>12.12f} ({}), accu {}".format(
                 loss_val, contribution_summary(loss_labels, loss_contributions_val), accu_val
             )
             logging_fn(val_report)
